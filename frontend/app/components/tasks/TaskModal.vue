@@ -162,13 +162,11 @@ async function handleDeleteButtonClick() {
         </div>
 
         <DialogFooter class="flex justify-between gap-2 pt-4">
-          <div v-if="!task?.id || canManageTask" class="flex gap-2">
-            <Button type="submit" :disabled="processing">
-              <Loader2 v-if="processing" class="mr-2 h-4 w-4 animate-spin" />
-              <Check v-else class="h-4 w-4" />
-              Сохранить
-            </Button>
-          </div>
+          <Button v-if="!task?.id || canManageTask" type="submit" :disabled="processing">
+            <Loader2 v-if="processing" class="mr-2 h-4 w-4 animate-spin" />
+            <Check v-else class="h-4 w-4" />
+            Сохранить
+          </Button>
           <Button
             v-if="task?.id && canManageTask"
             type="button"

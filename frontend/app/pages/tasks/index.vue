@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import TaskLayout from '~/components/tasks/TaskLayout.vue';
-import type { DataResource } from '~/types';
+import type { BreadcrumbItem, DataResource } from '~/types';
 import type { Task } from '~/interfaces/task';
 import Pagination from '@/components/app/Pagination.vue';
 import { useTaskAPI } from '~/api/task';
@@ -16,12 +15,13 @@ import {
   SelectValue,
 } from '~/components/ui/select';
 import { Badge } from '~/components/ui/badge';
-import { ArrowDown, ArrowUp, ArrowUpDown, Trash } from 'lucide-vue-next';
+import { ArrowDown, ArrowUp, ArrowUpDown, FilterX, Plus, Trash } from 'lucide-vue-next';
 import { watchDebounced } from '@vueuse/core';
 import TaskModal from '~/components/tasks/TaskModal.vue';
 import { Button } from '~/components/ui/button';
 import { useToast } from '~/components/ui/toast/use-toast';
 import { useUserStore } from '~/stores/user';
+import AppLayout from '~/layouts/AppLayout.vue';
 
 const TITLE = 'Задачи';
 
@@ -31,6 +31,18 @@ useHead({
 
 const route = useRoute();
 const router = useRouter();
+
+const breadcrumbs: BreadcrumbItem[] = [
+  {
+    title: 'Главная',
+    href: router.resolve({ name: 'index' }).fullPath,
+  },
+  {
+    title: TITLE,
+    href: router.resolve({ name: 'tasks' }).fullPath,
+  },
+];
+
 const dayjs = useDayjs();
 
 const taskAPI = useTaskAPI();
@@ -143,7 +155,7 @@ async function handleTableFilter() {
   await router.replace({ query });
 }
 
-async function resetFilters() {
+async function handleResetFiltersButtonClick() {
   filters.value = createDefaultFilters();
   sort.field = null;
   sort.order = -1;
@@ -222,13 +234,32 @@ async function handleDeleteTask(task: Task) {
 </script>
 
 <template>
-  <TaskLayout
-    v-if="tasks"
-    :title="TITLE"
-    :has-applied-filters="hasAppliedFilters"
-    @on-create-button-click="handleCreateButtonClick"
-    @reset-filters="resetFilters"
-  >
+  <AppLayout v-if="tasks" :breadcrumbs="breadcrumbs">
+    <div class="flex justify-between gap-4 items-center pt-4 ps-4 pe-4">
+      <div class="flex gap-4">
+        <Button
+          variant="default"
+          class="bg-green-600 hover:bg-green-700 text-white"
+          @click="handleCreateButtonClick"
+        >
+          <Plus class="h-4 w-4" />
+          Создать
+        </Button>
+      </div>
+
+      <div class="flex gap-4">
+        <Button
+          v-if="hasAppliedFilters"
+          variant="destructive"
+          class="flex items-center gap-2"
+          @click="handleResetFiltersButtonClick"
+        >
+          <FilterX :size="18" />
+          Сбросить фильтры
+        </Button>
+      </div>
+    </div>
+
     <div class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
       <div class="border rounded-xl relative">
         <Table>
@@ -369,7 +400,7 @@ async function handleDeleteTask(task: Task) {
         />
       </div>
     </div>
-  </TaskLayout>
+  </AppLayout>
 
   <TaskModal
     v-if="isModalOpen"
