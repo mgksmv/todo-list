@@ -18,7 +18,7 @@ const props = withDefaults(
   },
 );
 
-const emit = defineEmits(['onAddButtonClick', 'resetFilters']);
+const emit = defineEmits(['onCreateButtonClick', 'resetFilters']);
 
 const route = useRoute();
 const router = useRouter();
@@ -61,7 +61,7 @@ async function handleSearch() {
         <Button
           variant="default"
           class="bg-green-600 hover:bg-green-700 text-white"
-          @click="emit('onAddButtonClick')"
+          @click="emit('onCreateButtonClick')"
         >
           <Plus class="h-4 w-4" />
           Создать

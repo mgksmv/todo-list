@@ -20,7 +20,7 @@ class Task extends Model
     protected function casts(): array
     {
         return [
-            'due_date' => 'date',
+            'due_date' => 'custom_datetime:Y-m-d',
             'status' => TaskStatus::class,
         ];
     }

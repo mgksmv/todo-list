@@ -16,8 +16,12 @@ import {
   SelectValue,
 } from '~/components/ui/select';
 import { Badge } from '~/components/ui/badge';
-import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-vue-next';
+import { ArrowDown, ArrowUp, ArrowUpDown, Trash } from 'lucide-vue-next';
 import { watchDebounced } from '@vueuse/core';
+import TaskModal from '~/components/tasks/TaskModal.vue';
+import { Button } from '~/components/ui/button';
+import { useToast } from '~/components/ui/toast/use-toast';
+import { useUserStore } from '~/stores/user';
 
 const TITLE = 'Задачи';
 
@@ -30,6 +34,8 @@ const router = useRouter();
 const dayjs = useDayjs();
 
 const taskAPI = useTaskAPI();
+const { toast } = useToast();
+const { authUser } = storeToRefs(useUserStore());
 
 const {
   data: tasks,
@@ -72,6 +78,9 @@ const sort = reactive({
   order: route.query.sort_order && route.query.sort_order == 'asc' ? 1 : -1,
 });
 
+const currentTask = ref<Task | null>(null);
+const isModalOpen = ref(false);
+
 const hasAppliedFilters = computed(() => {
   return (
     Object.values(filters.value).some(
@@ -79,6 +88,10 @@ const hasAppliedFilters = computed(() => {
     ) || Object.values(sort).some((value) => value != undefined && value !== '' && value !== -1)
   );
 });
+
+const canManageTask = (task: Task) => {
+  return authUser.value.is_admin || task.user_id === authUser.value.id;
+};
 
 watch(tasksPending, async (pending) => {
   if (!pending) {
@@ -163,8 +176,48 @@ async function handleTableSort(field: string) {
   await router.replace({ query });
 }
 
+function handleCreateButtonClick() {
+  currentTask.value = null;
+  isModalOpen.value = true;
+}
+
 function handleEditButtonClick(task: Task) {
-  router.push({ name: 'tasks-edit', params: { id: task.id } });
+  currentTask.value = task;
+  isModalOpen.value = true;
+}
+
+async function handleModalClose(refreshData?: boolean) {
+  isModalOpen.value = false;
+  if (refreshData) {
+    await tasksRefresh();
+  }
+}
+
+async function handleDeleteTask(task: Task) {
+  if (!confirm('Вы уверены, что хотите удалить задачу?')) {
+    return;
+  }
+
+  const response = await taskAPI.destroy(task.id);
+
+  if (response.success) {
+    if (isModalOpen.value) {
+      isModalOpen.value = false;
+    }
+
+    await tasksRefresh();
+
+    toast({
+      title: 'Успех',
+      description: 'Задача удалена',
+    });
+  } else {
+    toast({
+      title: 'Ошибка',
+      description: 'Не удалось удалить задачу',
+      variant: 'destructive',
+    });
+  }
 }
 </script>
 
@@ -173,6 +226,7 @@ function handleEditButtonClick(task: Task) {
     v-if="tasks"
     :title="TITLE"
     :has-applied-filters="hasAppliedFilters"
+    @on-create-button-click="handleCreateButtonClick"
     @reset-filters="resetFilters"
   >
     <div class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
@@ -217,6 +271,7 @@ function handleEditButtonClick(task: Task) {
                   <ArrowDown v-else class="h-4 w-4" />
                 </div>
               </TableHead>
+              <TableHead class="w-[50px]"></TableHead>
             </TableRow>
             <TableRow class="bg-muted/50">
               <TableCell></TableCell>
@@ -259,6 +314,7 @@ function handleEditButtonClick(task: Task) {
                   </SelectContent>
                 </Select>
               </TableCell>
+              <TableCell></TableCell>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -280,10 +336,21 @@ function handleEditButtonClick(task: Task) {
                     </Badge>
                   </template>
                 </TableCell>
+                <TableCell>
+                  <Button
+                    v-if="canManageTask(task)"
+                    variant="ghost"
+                    size="icon"
+                    class="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                    @click.stop="handleDeleteTask(task)"
+                  >
+                    <Trash class="h-4 w-4" />
+                  </Button>
+                </TableCell>
               </TableRow>
             </template>
             <TableRow v-else>
-              <TableCell colspan="5" class="h-24 text-center text-muted-foreground">
+              <TableCell colspan="6" class="h-24 text-center text-muted-foreground">
                 Пусто
               </TableCell>
             </TableRow>
@@ -303,4 +370,12 @@ function handleEditButtonClick(task: Task) {
       </div>
     </div>
   </TaskLayout>
+
+  <TaskModal
+    v-if="isModalOpen"
+    :is-open="isModalOpen"
+    :task="currentTask"
+    @close-modal="handleModalClose"
+    @on-delete="handleDeleteTask"
+  />
 </template>

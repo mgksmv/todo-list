@@ -3,7 +3,6 @@
 namespace App\Api\V1\Requests;
 
 use App\Enums\TaskStatus;
-use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -17,7 +16,6 @@ class TaskSaveRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'user_id' => ['required', Rule::exists(User::class, 'id')],
             'title' => ['required', 'string', 'min:3', 'max:255'],
             'description' => ['nullable', 'string', 'max:1000'],
             'due_date' => ['required', 'date'],

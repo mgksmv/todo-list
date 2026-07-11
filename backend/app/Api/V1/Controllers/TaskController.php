@@ -38,7 +38,10 @@ class TaskController extends ApiController
      */
     public function store(TaskSaveRequest $request): JsonResponse
     {
-        $task = Task::query()->create($request->validated());
+        $task = Task::query()->create([
+            ...$request->validated(),
+            'user_id' => auth()->id(),
+        ]);
 
         return $this->success(TaskResource::make($task));
     }
