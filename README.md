@@ -90,6 +90,8 @@ docker compose run --rm --no-deps php-fpm chmod 777 -R storage bootstrap/cache
 
 Проект доступен по адресу: [http://localhost](http://localhost)
 
+API документация: [http://app.localhost/docs/api](http://app.localhost/docs/api)
+
 ## Аутентификация
 В приложении используется **Laravel Sanctum** с подходом **Bearer Token**.
 
