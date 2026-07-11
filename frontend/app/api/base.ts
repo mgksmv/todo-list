@@ -9,6 +9,10 @@ export function useAPI(options: any = {}) {
 
   const fetchInstance = $fetch.create<APIResponse>({
     baseURL: `${config.public.backendURL}/api`,
+    credentials: 'include',
+    headers: {
+      'X-Requested-With': 'XMLHttpRequest',
+    },
     onRequest({ options }) {
       options.headers.set('Authorization', `Bearer ${token.value}`);
     },

@@ -1,6 +1,23 @@
 <script setup lang="ts">
-import AppLayout from '@/layouts/AppLayout.vue';
-import type { BreadcrumbItem } from '~/types';
+import TaskLayout from '~/components/tasks/TaskLayout.vue';
+import type { DataResource } from '~/types';
+import type { Task } from '~/interfaces/task';
+import Pagination from '@/components/app/Pagination.vue';
+import { useTaskAPI } from '~/api/task';
+import { taskStatusOptions, getTaskStatusLabel, getTaskStatusBadgeVariant, TaskStatus } from '~/enums/task-status';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '~/components/ui/table';
+import { Input } from '~/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '~/components/ui/select';
+import { Badge } from '~/components/ui/badge';
+import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-vue-next';
+import { watchDebounced } from '@vueuse/core';
 
 const TITLE = 'Задачи';
 
@@ -8,21 +25,282 @@ useHead({
   title: TITLE,
 });
 
+const route = useRoute();
 const router = useRouter();
+const dayjs = useDayjs();
 
-const breadcrumbs: BreadcrumbItem[] = [
-  {
-    title: 'Главная',
-    href: router.resolve({ name: 'index' }).fullPath,
+const taskAPI = useTaskAPI();
+
+const {
+  data: tasks,
+  pending: tasksPending,
+  refresh: tasksRefresh,
+} = await useAsyncData<DataResource<Task[]>>(
+  async () => {
+    const response = await taskAPI.getPaginated(route.query);
+
+    return {
+      data: response.data,
+      meta: response.meta,
+    };
   },
   {
-    title: TITLE,
+    watch: [() => route.query],
   },
-];
+);
+
+const createDefaultFilters = () => ({
+  title: undefined,
+  user_name: undefined,
+  due_date: undefined,
+  status: undefined,
+});
+
+const createFiltersFromQuery = () => {
+  return {
+    title: route.query.title ? String(route.query.title) : undefined,
+    user_name: route.query.user_name ? String(route.query.user_name) : undefined,
+    due_date: route.query.due_date ? String(route.query.due_date) : undefined,
+    status: route.query.status ? String(route.query.status) : undefined,
+  };
+};
+
+const filters = ref(createFiltersFromQuery());
+
+const sort = reactive({
+  field: route.query.sort_field ? String(route.query.sort_field) : null,
+  order: route.query.sort_order && route.query.sort_order == 'asc' ? 1 : -1,
+});
+
+const hasAppliedFilters = computed(() => {
+  return (
+    Object.values(filters.value).some(
+      (value) => value !== undefined && value !== '',
+    ) || Object.values(sort).some((value) => value != undefined && value !== '' && value !== -1)
+  );
+});
+
+watch(tasksPending, async (pending) => {
+  if (!pending) {
+    await nextTick();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+});
+
+watchDebounced(
+  () => [filters.value.title, filters.value.user_name],
+  () => {
+    handleTableFilter();
+  },
+  { debounce: 500 },
+);
+
+async function handlePageChange(page: number) {
+  await router.replace({
+    query: { ...route.query, page },
+  });
+}
+
+async function handleTableFilter() {
+  const raw = Object.fromEntries(
+    Object.entries(filters.value)
+      .map(([key, value]) => [key, value])
+      .filter(([key, value]) => {
+        if (value === null || value === undefined) return false;
+        if (typeof value === 'string') {
+          if (key === 'status' && value === 'all') return false;
+          return value.trim() !== '';
+        }
+        return true;
+      }),
+  );
+
+  const query: Record<string, any> = {
+    page: undefined,
+  };
+
+  for (const [key, value] of Object.entries(raw)) {
+    if (Array.isArray(value)) {
+      query[`${key}[]`] = value;
+    } else {
+      query[key] = value;
+    }
+  }
+
+  await router.replace({ query });
+}
+
+async function resetFilters() {
+  filters.value = createDefaultFilters();
+  sort.field = null;
+  sort.order = -1;
+  await router.replace({ query: {} });
+}
+
+async function handleTableSort(field: string) {
+  const query: Record<string, any> = {
+    ...route.query,
+    page: undefined,
+  };
+
+  if (sort.field === field) {
+    if (sort.order === 1) {
+      sort.order = -1;
+      query.sort_order = 'desc';
+    } else {
+      sort.field = null;
+      sort.order = -1;
+      query.sort_field = undefined;
+      query.sort_order = undefined;
+    }
+  } else {
+    sort.field = field;
+    sort.order = 1;
+    query.sort_field = field;
+    query.sort_order = 'asc';
+  }
+
+  await router.replace({ query });
+}
+
+function handleEditButtonClick(task: Task) {
+  router.push({ name: 'tasks-edit', params: { id: task.id } });
+}
 </script>
 
 <template>
-  <AppLayout :breadcrumbs="breadcrumbs">
+  <TaskLayout
+    v-if="tasks"
+    :title="TITLE"
+    :has-applied-filters="hasAppliedFilters"
+    @reset-filters="resetFilters"
+  >
+    <div class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
+      <div class="border rounded-xl relative">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead class="w-[80px] cursor-pointer select-none" @click="handleTableSort('id')">
+                <div class="flex items-center gap-2">
+                  ID
+                  <ArrowUpDown v-if="sort.field !== 'id'" class="h-4 w-4" />
+                  <ArrowUp v-else-if="sort.order === 1" class="h-4 w-4" />
+                  <ArrowDown v-else class="h-4 w-4" />
+                </div>
+              </TableHead>
+              <TableHead class="cursor-pointer select-none" @click="handleTableSort('title')">
+                <div class="flex items-center gap-2">
+                  Заголовок
+                  <ArrowUpDown v-if="sort.field !== 'title'" class="h-4 w-4" />
+                  <ArrowUp v-else-if="sort.order === 1" class="h-4 w-4" />
+                  <ArrowDown v-else class="h-4 w-4" />
+                </div>
+              </TableHead>
+              <TableHead class="select-none">
+                <div class="flex items-center gap-2">
+                  Пользователь
+                </div>
+              </TableHead>
+              <TableHead class="cursor-pointer select-none" @click="handleTableSort('due_date')">
+                <div class="flex items-center gap-2">
+                  Дедлайн
+                  <ArrowUpDown v-if="sort.field !== 'due_date'" class="h-4 w-4" />
+                  <ArrowUp v-else-if="sort.order === 1" class="h-4 w-4" />
+                  <ArrowDown v-else class="h-4 w-4" />
+                </div>
+              </TableHead>
+              <TableHead class="cursor-pointer select-none" @click="handleTableSort('status')">
+                <div class="flex items-center gap-2">
+                  Статус
+                  <ArrowUpDown v-if="sort.field !== 'status'" class="h-4 w-4" />
+                  <ArrowUp v-else-if="sort.order === 1" class="h-4 w-4" />
+                  <ArrowDown v-else class="h-4 w-4" />
+                </div>
+              </TableHead>
+            </TableRow>
+            <TableRow class="bg-muted/50">
+              <TableCell></TableCell>
+              <TableCell>
+                <Input
+                  v-model="filters.title"
+                  placeholder="Фильтр по заголовку"
+                  class="h-8"
+                />
+              </TableCell>
+              <TableCell>
+                <Input
+                  v-model="filters.user_name"
+                  placeholder="Фильтр по пользователю"
+                  class="h-8"
+                />
+              </TableCell>
+              <TableCell></TableCell>
+              <TableCell>
+                <Select
+                  v-model="filters.status"
+                  @update:model-value="handleTableFilter"
+                >
+                  <SelectTrigger class="h-8 w-full">
+                    <SelectValue placeholder="Все статусы" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectItem value="all">
+                        Все статусы
+                      </SelectItem>
+                      <SelectItem
+                        v-for="option in taskStatusOptions"
+                        :key="option.value"
+                        :value="String(option.value)"
+                      >
+                        {{ option.label }}
+                      </SelectItem>
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </TableCell>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            <template v-if="tasks.data.length > 0">
+              <TableRow
+                v-for="task in tasks.data"
+                :key="task.id"
+                class="cursor-pointer"
+                @click="handleEditButtonClick(task)"
+              >
+                <TableCell>{{ task.id }}</TableCell>
+                <TableCell>{{ task.title }}</TableCell>
+                <TableCell>{{ task.user?.name }}</TableCell>
+                <TableCell>{{ dayjs(task.due_date).format('DD.MM.YYYY') }}</TableCell>
+                <TableCell>
+                  <template v-if="task.status">
+                    <Badge :variant="getTaskStatusBadgeVariant(task.status as TaskStatus)">
+                      {{ getTaskStatusLabel(task.status as TaskStatus) }}
+                    </Badge>
+                  </template>
+                </TableCell>
+              </TableRow>
+            </template>
+            <TableRow v-else>
+              <TableCell colspan="5" class="h-24 text-center text-muted-foreground">
+                Пусто
+              </TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+        <div v-if="tasksPending" class="absolute inset-0 flex items-center justify-center bg-background/50">
+          <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
+      </div>
 
-  </AppLayout>
+      <div class="flex justify-center my-4">
+        <Pagination
+          :data="tasks"
+          :limit="2"
+          @pagination-change-page="handlePageChange"
+        />
+      </div>
+    </div>
+  </TaskLayout>
 </template>

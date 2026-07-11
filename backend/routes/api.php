@@ -1,6 +1,7 @@
 <?php
 
 use App\Api\V1\Controllers\AuthController;
+use App\Api\V1\Controllers\TaskController;
 use App\Api\V1\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -19,5 +20,7 @@ Route::prefix('/v1')->group(function () {
             Route::put('/', [UserController::class, 'update']);
             Route::put('/password', [UserController::class, 'updatePassword']);
         });
+
+        Route::apiResource('/tasks', TaskController::class);
     });
 });

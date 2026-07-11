@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import AppSidebarLayout from '@/layouts/app/AppSidebarLayout.vue';
+import Layout from '@/layouts/app/AppSidebarLayout.vue';
 import type { BreadcrumbItemType } from '@/types';
 
 interface Props {
@@ -12,7 +12,7 @@ withDefaults(defineProps<Props>(), {
 });
 
 const layout = computed(() => {
-  return AppSidebarLayout;
+  return Layout;
 });
 </script>
 

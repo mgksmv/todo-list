@@ -9,17 +9,17 @@ export function useUserAPI() {
     });
   }
 
-  async function updateCurrentUser(payload: object) {
+  async function updateCurrentUser(body: object) {
     return await apiFetch('/v1/user', {
       method: 'put',
-      body: payload,
+      body,
     });
   }
 
-  async function updateCurrentUserPassword(payload: object) {
+  async function updateCurrentUserPassword(body: object) {
     return await apiFetch('/v1/user/password', {
       method: 'put',
-      body: payload,
+      body,
     });
   }
 

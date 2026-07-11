@@ -31,7 +31,7 @@ import {
 import UserMenuContent from '@/components/app/UserMenuContent.vue';
 import { getInitials } from '@/composables/useInitials';
 import type { BreadcrumbItem, NavItem } from '@/types';
-import { Menu } from 'lucide-vue-next';
+import { CheckSquareIcon, Menu } from 'lucide-vue-next';
 import { computed } from 'vue';
 import { useUserStore } from '~/stores/user';
 
@@ -45,19 +45,37 @@ const props = withDefaults(defineProps<Props>(), {
 
 const { authUser } = storeToRefs(useUserStore());
 
-const isCurrentRoute = computed(
-  () => (url) =>
-    page.url === (typeof url === 'string' ? url : url.url)
-);
+const router = useRouter();
+const route = useRoute();
 
-const activeItemStyles = computed(
-  () => (url) =>
-    isCurrentRoute.value(typeof url === 'string' ? url : url.url)
-      ? 'text-neutral-900 dark:bg-neutral-800 dark:text-neutral-100'
-      : ''
-);
+// const isCurrentRoute = computed(
+//   () => (url) =>
+//     page.url === (typeof url === 'string' ? url : url.url)
+// );
+//
+// const activeItemStyles = computed(
+//   () => (url) =>
+//     isCurrentRoute.value(typeof url === 'string' ? url : url.url)
+//       ? 'text-neutral-900 dark:bg-neutral-800 dark:text-neutral-100'
+//       : ''
+// );
 
-const mainNavItems: NavItem[] = [];
+let baseNavItems: NavItem[] = [
+  {
+    title: 'Задачи',
+    href: router.resolve({ name: 'tasks' }).fullPath,
+    icon: CheckSquareIcon,
+  },
+];
+
+const mainNavItems = computed(() => {
+  return baseNavItems.map((item) => ({
+    ...item,
+    isActive:
+      item.isActive ??
+      (route.path === item.href || route.path.startsWith(item.href + '/')),
+  }));
+});
 
 const rightNavItems: NavItem[] = [];
 </script>
@@ -85,12 +103,12 @@ const rightNavItems: NavItem[] = [];
                 class="flex h-full flex-1 flex-col justify-between space-y-4 py-6"
               >
                 <nav class="-mx-3 space-y-1">
-                  <Link
+                  <NuxtLink
                     v-for="item in mainNavItems"
                     :key="item.title"
                     :href="item.href"
                     class="flex items-center gap-x-3 rounded-lg px-3 py-2 text-sm font-medium hover:bg-accent"
-                    :class="activeItemStyles(item.href)"
+                    :class="item.isActive ? 'text-neutral-900 dark:bg-neutral-800 dark:text-neutral-100' : ''"
                   >
                     <component
                       v-if="item.icon"
@@ -98,7 +116,7 @@ const rightNavItems: NavItem[] = [];
                       class="h-5 w-5"
                     />
                     {{ item.title }}
-                  </Link>
+                  </NuxtLink>
                 </nav>
                 <div class="flex flex-col space-y-4">
                   <a
@@ -140,10 +158,10 @@ const rightNavItems: NavItem[] = [];
                 :key="index"
                 class="relative flex h-full items-center"
               >
-                <Link
+                <NuxtLink
                   :class="[
                     navigationMenuTriggerStyle(),
-                    activeItemStyles(item.href),
+                    item.isActive ? 'text-neutral-900 dark:bg-neutral-800 dark:text-neutral-100' : '',
                     'h-9 cursor-pointer px-3',
                   ]"
                   :href="item.href"
@@ -154,9 +172,9 @@ const rightNavItems: NavItem[] = [];
                     class="mr-2 h-4 w-4"
                   />
                   {{ item.title }}
-                </Link>
+                </NuxtLink>
                 <div
-                  v-if="isCurrentRoute(item.href)"
+                  v-if="item.isActive"
                   class="absolute bottom-0 left-0 h-0.5 w-full translate-y-px bg-black dark:bg-white"
                 ></div>
               </NavigationMenuItem>
