@@ -21,7 +21,7 @@ class AuthController extends ApiController
         $user = User::query()->firstWhere(['email' => $request->input('email')]);
 
         if (!$user || !Hash::check($request->input('password'), $user->password)) {
-            return $this->unauthorized('Неверный логин или пароль.');
+            return $this->unauthorized(__('auth.failed'));
         }
 
         $remember = $request->boolean('remember');

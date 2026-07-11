@@ -4,7 +4,7 @@ use App\Models\User;
 use Laravel\Sanctum\PersonalAccessToken;
 
 describe('POST /api/v1/auth/login', function () {
-    test('user can login with valid credentials', function () {
+    it('can login with valid credentials', function () {
         $user = User::factory()->create([
             'email' => 'test@test.com',
             'password' => '12345',
@@ -18,6 +18,7 @@ describe('POST /api/v1/auth/login', function () {
         $response->assertStatus(200)
             ->assertJsonStructure([
                 'success',
+                'message',
                 'data' => [
                     'token',
                     'remember',
@@ -26,6 +27,7 @@ describe('POST /api/v1/auth/login', function () {
             ])
             ->assertJson([
                 'success' => true,
+                'message' => null,
                 'data' => [
                     'remember' => false,
                     'user' => [
@@ -44,7 +46,7 @@ describe('POST /api/v1/auth/login', function () {
             )->toBeTrue();
     });
 
-    test('user can login with valid credentials remember login', function () {
+    it('can login with valid credentials and remember login', function () {
         $user = User::factory()->create([
             'email' => 'test@test.com',
             'password' => '12345',
@@ -59,6 +61,7 @@ describe('POST /api/v1/auth/login', function () {
         $response->assertStatus(200)
             ->assertJsonStructure([
                 'success',
+                'message',
                 'data' => [
                     'token',
                     'remember',
@@ -67,6 +70,7 @@ describe('POST /api/v1/auth/login', function () {
             ])
             ->assertJson([
                 'success' => true,
+                'message' => null,
                 'data' => [
                     'remember' => true,
                     'user' => [
@@ -85,7 +89,7 @@ describe('POST /api/v1/auth/login', function () {
             )->toBeTrue();
     });
 
-    test('user cannot login with invalid credentials', function () {
+    it('cannot login with invalid credentials', function () {
         $user = User::factory()->create([
             'email' => 'test@test.com',
             'password' => '12345',
@@ -103,7 +107,7 @@ describe('POST /api/v1/auth/login', function () {
             ])
             ->assertJson([
                 'success' => false,
-                'message' => 'Неверный логин или пароль.',
+                'message' => __('auth.failed'),
             ]);
 
         expect(
@@ -115,7 +119,7 @@ describe('POST /api/v1/auth/login', function () {
 });
 
 describe('POST /api/v1/auth/logout', function () {
-    test('authenticated user can logout', function () {
+    it('allows authenticated user to logout', function () {
         User::factory()->create([
             'email' => 'test@test.com',
             'password' => '12345',
@@ -133,10 +137,11 @@ describe('POST /api/v1/auth/logout', function () {
         $response->assertStatus(200)
             ->assertJson([
                 'success' => true,
+                'message' => null,
             ]);
     });
 
-    test('unauthenticated user cannot logout', function () {
+    it('returns 401 when user is not authenticated', function () {
         User::factory()->create([
             'email' => 'test@test.com',
             'password' => '12345',

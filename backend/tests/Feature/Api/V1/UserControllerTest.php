@@ -1,220 +1,121 @@
 <?php
 
 use App\Models\User;
+use Illuminate\Support\Facades\Hash;
 
-describe('GET /api/v1/users', function () {
-    test('it returns paginated users', function () {
-        $user = User::factory()->create();
-        User::factory()->count(5)->create();
-
-        $response = $this->actingAs($user)
-            ->getJson('/api/v1/users');
-
-        $response->assertStatus(200)
-            ->assertJsonStructure([
-                'success',
-                'data' => [
-                    '*' => [
-                        'id',
-                        'name',
-                        'email',
-                    ],
-                ],
-                'meta' => [
-                    'current_page',
-                    'last_page',
-                    'per_page',
-                    'total',
-                ],
-            ])
-            ->assertJson([
-                'success' => true,
-            ]);
-    });
-
-    test('it can filter users by name', function () {
-        $user = User::factory()->create();
-        User::factory()->create(['name' => 'John Doe']);
-        User::factory()->create(['name' => 'Jane Smith']);
-
-        $response = $this->actingAs($user)
-            ->getJson('/api/v1/users?name=John');
-
-        $response->assertStatus(200)
-            ->assertJsonCount(1, 'data')
-            ->assertJsonPath('data.0.name', 'John Doe');
-    });
-
-    test('it returns 401 if user is not authenticated', function () {
-        $response = $this->getJson('/api/v1/users');
+describe('GET /api/v1/user', function () {
+    it('returns 401 if the user is not authenticated', function () {
+        $response = $this->getJson('/api/v1/user');
 
         $response->assertStatus(401);
     });
-});
 
-describe('POST /api/v1/users/all', function () {
-    test('it returns all users without pagination', function () {
-        $user = User::factory()->create();
-        User::factory()->count(5)->create();
-
-        $response = $this->actingAs($user)
-            ->postJson('/api/v1/users/all');
-
-        $response->assertStatus(200)
-            ->assertJsonStructure([
-                'success',
-                'data' => [
-                    '*' => [
-                        'id',
-                        'name',
-                        'email',
-                    ],
-                ],
-            ])
-            ->assertJsonMissingPath('meta');
-    });
-
-    test('it returns 401 if user is not authenticated', function () {
-        $response = $this->postJson('/api/v1/users/all');
-
-        $response->assertStatus(401);
-    });
-});
-
-describe('POST /api/v1/users', function () {
-    test('it can create a user', function () {
-        $user = User::factory()->create();
-        $userData = [
-            'name' => 'New User',
-            'email' => 'newuser@example.com',
-            'password' => 'password123',
-        ];
-
-        $response = $this->actingAs($user)
-            ->postJson('/api/v1/users', $userData);
-
-        $response->assertStatus(201)
-            ->assertJson([
-                'success' => true,
-                'data' => [
-                    'name' => 'New User',
-                    'email' => 'newuser@example.com',
-                ],
-            ]);
-
-        $this->assertDatabaseHas('users', [
-            'email' => 'newuser@example.com',
-        ]);
-    });
-
-    test('it validates user creation', function () {
+    it('returns the current authenticated user', function () {
         $user = User::factory()->create();
 
-        $response = $this->actingAs($user)
-            ->postJson('/api/v1/users', []);
-
-        $response->assertStatus(422)
-            ->assertJsonValidationErrors([
-                'name',
-                'email',
-                'password',
-            ]);
-    });
-
-    test('it returns 401 if user is not authenticated', function () {
-        $response = $this->postJson('/api/v1/users', []);
-
-        $response->assertStatus(401);
-    });
-});
-
-describe('GET /api/v1/users/{user}', function () {
-    test('it can show a user', function () {
-        $user = User::factory()->create();
-        $targetUser = User::factory()->create();
-
-        $response = $this->actingAs($user)
-            ->getJson("/api/v1/users/{$targetUser->id}");
+        $response = $this->actingAs($user)->getJson('/api/v1/user');
 
         $response->assertStatus(200)
             ->assertJson([
                 'success' => true,
                 'data' => [
-                    'id' => $targetUser->id,
-                    'name' => $targetUser->name,
-                    'email' => $targetUser->email,
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
                 ],
             ]);
     });
-
-    test('it returns 401 if user is not authenticated', function () {
-        $targetUser = User::factory()->create();
-
-        $response = $this->getJson("/api/v1/users/{$targetUser->id}");
-
-        $response->assertStatus(401);
-    });
 });
 
-describe('PUT /api/v1/users/{user}', function () {
-    test('it can update a user', function () {
-        $user = User::factory()->create();
-        $targetUser = User::factory()->create();
+describe('PUT /api/v1/user', function () {
+    it('returns 401 if the user is not authenticated', function () {
         $updateData = [
-            'name' => 'Updated Name',
+            'name' => 'Андрей',
             'email' => 'updated@example.com',
         ];
 
-        $response = $this->actingAs($user)
-            ->putJson("/api/v1/users/{$targetUser->id}", $updateData);
+        $response = $this->putJson('/api/v1/user', $updateData);
+
+        $response->assertStatus(401);
+    });
+
+    it('can update current user data', function () {
+        $user = User::factory()->create([
+            'name' => 'Алексей',
+            'email' => 'old@example.com',
+        ]);
+        $updateData = [
+            'name' => 'Андрей',
+            'email' => 'updated@example.com',
+        ];
+
+        $response = $this->actingAs($user)->putJson('/api/v1/user', $updateData);
 
         $response->assertStatus(200)
             ->assertJson([
                 'success' => true,
                 'data' => [
-                    'name' => 'Updated Name',
+                    'name' => 'Андрей',
                     'email' => 'updated@example.com',
                 ],
             ]);
 
         $this->assertDatabaseHas('users', [
-            'id' => $targetUser->id,
-            'name' => 'Updated Name',
+            'id' => $user->id,
+            'name' => 'Андрей',
+            'email' => 'updated@example.com',
         ]);
     });
 
-    test('it returns 401 if user is not authenticated', function () {
-        $targetUser = User::factory()->create();
+    it('validates current user update', function () {
+        $user = User::factory()->create();
 
-        $response = $this->putJson("/api/v1/users/{$targetUser->id}", []);
+        $response = $this->actingAs($user)->putJson('/api/v1/user', []);
 
-        $response->assertStatus(401);
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['name', 'email']);
     });
 });
 
-describe('DELETE /api/v1/users/{user}', function () {
-    test('it can delete a user', function () {
-        $user = User::factory()->create();
-        $targetUser = User::factory()->create();
-
-        $response = $this->actingAs($user)
-            ->deleteJson("/api/v1/users/{$targetUser->id}");
-
-        $response->assertStatus(200)
-            ->assertJson([
-                'success' => true,
-            ]);
-
-        $this->assertDatabaseMissing('users', [
-            'id' => $targetUser->id,
+describe('PUT /api/v1/user/password', function () {
+    it('returns 401 if the user is not authenticated', function () {
+        $response = $this->putJson('/api/v1/user/password', [
+            'current_password' => 'password123',
+            'password' => 'new-password',
+            'password_confirmation' => 'new-password',
         ]);
-    });
-
-    test('it returns 401 if user is not authenticated', function () {
-        $targetUser = User::factory()->create();
-
-        $response = $this->deleteJson("/api/v1/users/{$targetUser->id}");
 
         $response->assertStatus(401);
+    });
+
+    it('can update the current user password', function () {
+        $user = User::factory()->create([
+            'password' => Hash::make('password123'),
+        ]);
+
+        $response = $this->actingAs($user)->putJson('/api/v1/user/password', [
+            'current_password' => 'password123',
+            'password' => 'new-password',
+            'password_confirmation' => 'new-password',
+        ]);
+
+        $response->assertStatus(200)->assertJson(['success' => true]);
+
+        expect(Hash::check('new-password', $user->refresh()->password))->toBeTrue();
+    });
+
+    it('validates password update', function () {
+        $user = User::factory()->create([
+            'password' => Hash::make('password123'),
+        ]);
+
+        $response = $this->actingAs($user)->putJson('/api/v1/user/password', [
+            'current_password' => 'wrong-password',
+            'password' => 'new',
+            'password_confirmation' => 'mismatch',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['current_password', 'password']);
     });
 });
