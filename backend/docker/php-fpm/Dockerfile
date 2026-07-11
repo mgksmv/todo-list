@@ -16,7 +16,6 @@ RUN apt-get update && apt-get install -y \
     libzip-dev \
     libpq-dev \
     linux-headers-amd64 \
-    supervisor \
     && docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
     && docker-php-ext-install \
         zip \
@@ -43,13 +42,6 @@ COPY ./docker/php/conf.d "${PHP_INI_DIR}/conf.d"
 COPY ./docker/wait-for-it.sh /usr/local/bin/wait-for-it
 RUN chmod 555 /usr/local/bin/wait-for-it
 
-COPY ./docker/supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-
-RUN mkdir -p /var/log/supervisor && chmod 777 /var/log/supervisor
-
-COPY ./docker/php-fpm/start.sh /usr/local/bin/start.sh
-RUN chmod +x /usr/local/bin/start.sh
-
 EXPOSE 9000
 
-CMD ["/usr/local/bin/start.sh"]
+CMD ["php-fpm"]
