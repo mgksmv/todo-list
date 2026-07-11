@@ -3,7 +3,8 @@ import type { BreadcrumbItem, DataResource } from '~/types';
 import type { Task } from '~/interfaces/task';
 import Pagination from '@/components/app/Pagination.vue';
 import { useTaskAPI } from '~/api/task';
-import { taskStatusOptions, getTaskStatusLabel, getTaskStatusBadgeVariant, TaskStatus } from '~/enums/task-status';
+import type { TaskStatus } from '~/enums/task-status';
+import { taskStatusOptions, getTaskStatusLabel, getTaskStatusBadgeVariant } from '~/enums/task-status';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '~/components/ui/table';
 import { Input } from '~/components/ui/input';
 import {
@@ -310,10 +311,10 @@ async function handleDeleteTask(task: Task) {
                   <ArrowDown v-else class="h-4 w-4" />
                 </div>
               </TableHead>
-              <TableHead class="w-[50px]"></TableHead>
+              <TableHead class="w-[50px]"/>
             </TableRow>
             <TableRow class="bg-muted/50 hover:bg-muted/50">
-              <TableCell></TableCell>
+              <TableCell/>
               <TableCell>
                 <Input
                   v-model="filters.title"
@@ -352,8 +353,8 @@ async function handleDeleteTask(task: Task) {
                   </SelectContent>
                 </Select>
               </TableCell>
-              <TableCell></TableCell>
-              <TableCell></TableCell>
+              <TableCell/>
+              <TableCell/>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -397,7 +398,7 @@ async function handleDeleteTask(task: Task) {
           </TableBody>
         </Table>
         <div v-if="tasksPending" class="absolute inset-0 flex items-center justify-center bg-background/50">
-          <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"/>
         </div>
       </div>
 

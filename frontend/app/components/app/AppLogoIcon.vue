@@ -47,7 +47,8 @@ defineProps<Props>();
     </g>
 
     <!-- Text -->
-    <text x="360"
+    <text
+x="360"
           y="135"
           font-family="Inter, Arial, Helvetica, sans-serif"
           font-size="72"

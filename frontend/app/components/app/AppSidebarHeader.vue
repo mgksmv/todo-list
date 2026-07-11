@@ -9,7 +9,7 @@ withDefaults(
   }>(),
   {
     breadcrumbs: () => [],
-  }
+  },
 );
 </script>
 

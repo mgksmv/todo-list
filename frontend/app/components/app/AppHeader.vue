@@ -60,7 +60,7 @@ const route = useRoute();
 //       : ''
 // );
 
-let baseNavItems: NavItem[] = [
+const baseNavItems: NavItem[] = [
   {
     title: 'Задачи',
     href: router.resolve({ name: 'tasks' }).fullPath,
@@ -111,8 +111,8 @@ const rightNavItems: NavItem[] = [];
                     :class="item.isActive ? 'text-neutral-900 dark:bg-neutral-800 dark:text-neutral-100' : ''"
                   >
                     <component
-                      v-if="item.icon"
                       :is="item.icon"
+                      v-if="item.icon"
                       class="h-5 w-5"
                     />
                     {{ item.title }}
@@ -130,8 +130,8 @@ const rightNavItems: NavItem[] = [];
                     class="flex items-center space-x-2 text-sm font-medium"
                   >
                     <component
-                      v-if="item.icon"
                       :is="item.icon"
+                      v-if="item.icon"
                       class="h-5 w-5"
                     />
                     <span>{{ item.title }}</span>
@@ -167,8 +167,8 @@ const rightNavItems: NavItem[] = [];
                   :href="item.href"
                 >
                   <component
-                    v-if="item.icon"
                     :is="item.icon"
+                    v-if="item.icon"
                     class="mr-2 h-4 w-4"
                   />
                   {{ item.title }}
@@ -176,7 +176,7 @@ const rightNavItems: NavItem[] = [];
                 <div
                   v-if="item.isActive"
                   class="absolute bottom-0 left-0 h-0.5 w-full translate-y-px bg-black dark:bg-white"
-                ></div>
+                />
               </NavigationMenuItem>
             </NavigationMenuList>
           </NavigationMenu>

@@ -15,7 +15,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
+import type { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
 const passwordInput = ref<InstanceType<typeof Input> | null>(null);

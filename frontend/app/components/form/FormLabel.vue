@@ -1,11 +1,11 @@
 <script setup lang="ts">
 withDefaults(
-    defineProps<{
+  defineProps<{
         required?: boolean,
     }>(),
-    {
-        required: false,
-    },
+  {
+    required: false,
+  },
 );
 </script>
 

@@ -18,7 +18,7 @@ import AppLogo from './AppLogo.vue';
 const router = useRouter();
 const route = useRoute();
 
-let baseNavItems: NavItem[] = [
+const baseNavItems: NavItem[] = [
   {
     title: 'Задачи',
     href: router.resolve({ name: 'tasks' }).fullPath,

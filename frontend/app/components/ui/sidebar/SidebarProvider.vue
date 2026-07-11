@@ -20,7 +20,7 @@ const props = withDefaults(
   {
     defaultOpen: true,
     open: undefined,
-  }
+  },
 );
 
 const emits = defineEmits<{

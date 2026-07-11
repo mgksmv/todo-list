@@ -6,7 +6,7 @@ export default withNuxt({
     quotes: ['error', 'single'],
     semi: ['error', 'always'],
     indent: ['error', 2, { SwitchCase: 1 }],
-    'comma-dangle': ['error', 'always'],
+    'comma-dangle': ['error', 'always-multiline'],
     'vue/multi-word-component-names': 'off',
     '@typescript-eslint/no-explicit-any': ['off'],
     'vue/html-self-closing': [
@@ -20,8 +20,5 @@ export default withNuxt({
   },
   languageOptions: {
     ecmaVersion: 'latest',
-    ecmaFeatures: {
-      jsx: false,
-    },
   },
 });

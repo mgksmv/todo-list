@@ -58,7 +58,7 @@ defineProps<Props>();
   </DropdownMenuGroup>
   <DropdownMenuSeparator />
   <DropdownMenuItem :as-child="true">
-    <button class="block w-full" @click="handleLogout" :disabled="isLoading">
+    <button class="block w-full" :disabled="isLoading" @click="handleLogout">
       <LogOut class="mr-2 h-4 w-4" />
       Выйти
     </button>

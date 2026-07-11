@@ -29,24 +29,24 @@ function handlePaginationChangePage(page: number) {
 
 <template>
   <RenderlessPagination
+    v-slot="slotProps"
     :data="data"
     :limit="limit"
     :keep-length="keepLength"
     @pagination-change-page="handlePaginationChangePage"
-    v-slot="slotProps"
   >
     <nav
+      v-if="slotProps.computed.total > slotProps.computed.perPage"
       v-bind="$attrs"
       aria-label="Pagination"
-      v-if="slotProps.computed.total > slotProps.computed.perPage"
       class="flex items-center justify-center"
     >
       <div class="flex items-center gap-1">
         <button
           :disabled="!slotProps.computed.prevPageUrl"
-          v-on="slotProps.prevButtonEvents"
           class="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-neutral-400 dark:text-neutral-500 bg-transparent border border-neutral-300 dark:border-neutral-600 rounded-xl hover:text-neutral-600 dark:hover:text-neutral-300 hover:border-neutral-400 dark:hover:border-neutral-500 focus:z-10 focus:outline-none transition-all duration-200 disabled:opacity-30 disabled:cursor-not-allowed"
           type="button"
+          v-on="slotProps.prevButtonEvents"
         >
           <svg
             class="w-4 h-4"
@@ -73,7 +73,6 @@ function handlePaginationChangePage(page: number) {
             :aria-current="
               page === slotProps.computed.currentPage ? 'page' : null
             "
-            v-on="slotProps.pageButtonEvents(page)"
             class="relative inline-flex items-center justify-center w-10 h-10 text-sm font-medium transition-all duration-200 focus:z-10 focus:outline-none rounded-xl border"
             :class="
               page === slotProps.computed.currentPage
@@ -81,6 +80,7 @@ function handlePaginationChangePage(page: number) {
                 : 'text-neutral-400 dark:text-neutral-500 border-neutral-300 dark:border-neutral-600 hover:text-neutral-600 dark:hover:text-neutral-300 hover:border-neutral-400 dark:hover:border-neutral-500'
             "
             type="button"
+            v-on="slotProps.pageButtonEvents(page)"
           >
             {{ page }}
           </button>
@@ -88,9 +88,9 @@ function handlePaginationChangePage(page: number) {
 
         <button
           :disabled="!slotProps.computed.nextPageUrl"
-          v-on="slotProps.nextButtonEvents"
           class="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-neutral-400 dark:text-neutral-500 bg-transparent border border-neutral-300 dark:border-neutral-600 rounded-xl hover:text-neutral-600 dark:hover:text-neutral-300 hover:border-neutral-400 dark:hover:border-neutral-500 focus:z-10 focus:outline-none transition-all duration-200 disabled:opacity-30 disabled:cursor-not-allowed"
           type="button"
+          v-on="slotProps.nextButtonEvents"
         >
           <span class="hidden sm:inline">
             <slot name="next-nav">След.</slot>

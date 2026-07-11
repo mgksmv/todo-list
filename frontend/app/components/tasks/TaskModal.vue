@@ -102,7 +102,7 @@ async function handleDeleteButtonClick() {
         <DialogTitle>{{ header }}</DialogTitle>
       </DialogHeader>
 
-      <form @submit.prevent="handleFormSubmit" class="space-y-4 py-4">
+      <form class="space-y-4 py-4" @submit.prevent="handleFormSubmit">
         <div class="space-y-2">
           <Label for="title" class="flex gap-1">
             Заголовок

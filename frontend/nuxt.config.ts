@@ -27,4 +27,4 @@ export default defineNuxtConfig({
     defaultLocale: 'ru',
     defaultTimezone: 'Europe/Moscow',
   },
-})
+});

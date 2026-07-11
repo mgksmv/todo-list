@@ -67,8 +67,8 @@ async function handleLogin() {
             Email
           </label>
           <Input
-            v-model="form.email"
             id="email"
+            v-model="form.email"
             type="email"
             name="email"
             class="w-full"
@@ -87,8 +87,8 @@ async function handleLogin() {
             <label for="password" class="text-sm font-medium">Пароль</label>
           </div>
           <Input
-            v-model="form.password"
             id="password"
+            v-model="form.password"
             type="password"
             name="password"
             class="w-full"
@@ -102,11 +102,11 @@ async function handleLogin() {
 
         <div class="flex items-center space-x-2">
           <Checkbox
-            :checked="form.remember"
-            @update:checked="(val) => form.remember = val"
             id="remember"
+            :checked="form.remember"
             name="remember"
             :tabindex="3"
+            @update:checked="(val) => form.remember = val"
           />
           <label for="remember" class="text-sm">Запомнить меня</label>
         </div>
