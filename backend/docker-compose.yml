@@ -1,0 +1,58 @@
+services:
+  nginx:
+    build:
+      context: .
+      dockerfile: docker/nginx/Dockerfile
+    restart: unless-stopped
+    volumes:
+      - .:/app
+      - storage:/app/storage/app
+    environment:
+      DOMAIN: ${APP_DOMAIN}
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik_public
+      - traefik.http.routers.appNginx.rule=Host(`${APP_DOMAIN}`)
+      - traefik.http.routers.appNginx.entryPoints=web
+      - traefik.http.services.appNginx.loadBalancer.server.port=80
+    networks:
+      - app
+      - traefik_public
+
+  php-fpm:
+    build:
+      context: .
+      dockerfile: docker/php-fpm/Dockerfile
+      args:
+        INSTALL_XDEBUG: "true"
+    restart: unless-stopped
+    volumes:
+      - .:/app
+      - storage:/app/storage/app
+    networks:
+      - app
+
+  db:
+    image: postgres:17
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_DATABASE}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "${DB_PORT}:${DB_PORT}"
+    volumes:
+      - db:/var/lib/postgresql/data
+      - './docker/pgsql/create-testing-database.sql:/docker-entrypoint-initdb.d/10-create-testing-database.sql'
+    networks:
+      - app
+
+volumes:
+  storage:
+  db:
+
+networks:
+  app:
+    external: true
+  traefik_public:
+    external: true

@@ -1,0 +1,29 @@
+include:
+  - ./backend/docker-compose.prod-http.yml
+  - ./frontend/docker-compose.prod-http.yml
+
+services:
+  traefik:
+    image: traefik:3.7
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    command:
+      - --providers.docker=true
+      - --providers.docker.exposedByDefault=false
+      - --entryPoints.web.address=:80
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - traefik_certs:/letsencrypt
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik_public
+    networks:
+      - app
+      - traefik_public
+
+networks:
+  app:
+    external: true
+  traefik_public:
+    external: true

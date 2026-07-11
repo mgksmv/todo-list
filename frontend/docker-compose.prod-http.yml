@@ -1,0 +1,36 @@
+services:
+  nuxt-app:
+    build:
+      context: .
+      dockerfile: docker/node/Dockerfile.prod
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - NUXT_HOST=0.0.0.0
+      - NUXT_PORT=3000
+      - NUXT_PUBLIC_API_BASE=${BACKEND_URL}
+    networks:
+      - app
+
+  nuxt-nginx:
+    image: nginx:alpine
+    restart: unless-stopped
+    volumes:
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik_public
+      - traefik.http.routers.frontend.rule=Host(`${APP_DOMAIN}`)
+      - traefik.http.routers.frontend.entryPoints=web
+      - traefik.http.services.frontend.loadBalancer.server.port=80
+    depends_on:
+      - nuxt-app
+    networks:
+      - app
+      - traefik_public
+
+networks:
+  app:
+    external: true
+  traefik_public:
+    external: true

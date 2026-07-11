@@ -1,0 +1,35 @@
+include:
+  - ./backend/docker-compose.prod.yml
+  - ./frontend/docker-compose.prod.yml
+
+services:
+  traefik:
+    image: traefik:3.7
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    command:
+      - --providers.docker=true
+      - --providers.docker.exposedByDefault=false
+      - --entryPoints.web.address=:80
+      - --entryPoints.websecure.address=:443
+      - --certificatesResolvers.le.acme.httpChallenge=true
+      - --certificatesResolvers.le.acme.httpChallenge.entrypoint=web
+      - --certificatesResolvers.le.acme.email=${ACME_EMAIL}
+      - --certificatesResolvers.le.acme.storage=/letsencrypt/acme.json
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - traefik_certs:/letsencrypt
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik_public
+    networks:
+      - app
+      - traefik_public
+
+networks:
+  app:
+    external: true
+  traefik_public:
+    external: true
