@@ -1,0 +1,97 @@
+# TO-DO List - Laravel + Vue/Nuxt
+
+Данное веб-приложение позволяет просматривать, создавать, редактировать и удалять задачи. Реализовано с использованием фреймворка Laravel для серверной части и фреймворка Nuxt для клиентской части.
+
+### ❗Для запуска необходимы Docker и make (можно и без него, если запускать Docker команды вручную, но я использую make для удобства)❗
+
+## Первичный запуск проекта
+
+При первичном запуске нужно инициализировать проект командой `make init`<br />
+Окружение:<br />
+`dev` - разработка<br />
+`prod` - продакшн<br />
+
+По дефолту выбирается `dev`
+
+## Основные команды (все команды указаны в `Makefile`):
+#### Первичная инициализация проекта
+```bash
+make init
+```
+
+#### Запуск проекта
+```bash
+make up
+```
+
+#### Остановка проекта
+```bash
+make down
+```
+#### ⚠️ Остановка проекта с очисткой данных (файлов хранилища, базы данных и т.д.)
+```bash
+make down-clear
+```
+
+#### Перезапуск проекта
+```bash
+make restart
+```
+
+#### Пересборка проекта
+```bash
+make build
+```
+
+## Запуск без `make` (используя Docker напрямую)
+Если у вас не установлен `make`, вы можете запускать команды вручную через Docker Compose.
+
+### 1. Инициализация проекта
+Выполните по порядку:
+```bash
+# Копирование файлов окружения
+cp .env.example .env
+cp backend/.env.example backend/.env
+cp frontend/.env.example frontend/.env
+
+# Создание сетей
+docker network create app
+docker network create traefik_public
+
+# Сборка и запуск контейнеров
+docker compose up -d --build --remove-orphans
+
+# Установка зависимостей и настройка backend
+docker compose run --rm --no-deps php-fpm composer install
+docker compose run --rm php-fpm php artisan key:generate
+docker compose run --rm php-fpm php artisan migrate --force
+docker compose run --rm php-fpm php artisan db:seed
+docker compose run --rm php-fpm php artisan storage:link
+docker compose run --rm --no-deps php-fpm chmod 777 -R storage bootstrap/cache
+```
+
+### 2. Основные операции
+- **Запуск:** `docker compose up -d`
+- **Остановка:** `docker compose down`
+- **Остановка с очисткой:** `docker compose down -v`
+- **Пересборка:** `docker compose up -d --build`
+
+## Тестовые пользователи
+После запуска сидов (`make init` или `php artisan db:seed`) в системе доступны:
+
+1. **Администратор:**
+   - Email: `admin@example.com`
+   - Пароль: `password`
+2. **Обычный пользователь:**
+   - Email: `user@example.com`
+   - Пароль: `password`
+
+## Аутентификация
+В приложении используется **Laravel Sanctum** с подходом **Bearer Token**.
+
+- При успешном логине через `/api/v1/auth/login` сервер возвращает API токен (`token`).
+- Этот токен необходимо передавать в каждом запросе к защищённым роутам в заголовке `Authorization`:
+  ```http
+  Authorization: Bearer <токен>
+  ```
+- Для Nuxt фронтенда управление токеном происходит автоматически через плагины и хранилище Pinia.
