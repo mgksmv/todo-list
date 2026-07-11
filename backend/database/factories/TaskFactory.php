@@ -25,7 +25,7 @@ class TaskFactory extends Factory
 
         return [
             'user_id' => User::count() ? User::inRandomOrder()->first()->id : User::factory(),
-            'title' => fake()->word(),
+            'title' => fake()->sentence(3),
             'description' => fake()->text(),
             'due_date' => $dueDate,
             'status' => Arr::random(TaskStatus::cases()),
