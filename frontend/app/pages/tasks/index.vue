@@ -264,7 +264,7 @@ async function handleDeleteTask(task: Task) {
       <div class="border rounded-xl relative">
         <Table>
           <TableHeader>
-            <TableRow>
+            <TableRow class="bg-muted/50 hover:bg-muted/50">
               <TableHead class="w-[80px] cursor-pointer select-none" @click="handleTableSort('id')">
                 <div class="flex items-center gap-2">
                   ID
@@ -286,14 +286,6 @@ async function handleDeleteTask(task: Task) {
                   Пользователь
                 </div>
               </TableHead>
-              <TableHead class="cursor-pointer select-none" @click="handleTableSort('due_date')">
-                <div class="flex items-center gap-2">
-                  Дедлайн
-                  <ArrowUpDown v-if="sort.field !== 'due_date'" class="h-4 w-4" />
-                  <ArrowUp v-else-if="sort.order === 1" class="h-4 w-4" />
-                  <ArrowDown v-else class="h-4 w-4" />
-                </div>
-              </TableHead>
               <TableHead class="cursor-pointer select-none" @click="handleTableSort('status')">
                 <div class="flex items-center gap-2">
                   Статус
@@ -302,9 +294,25 @@ async function handleDeleteTask(task: Task) {
                   <ArrowDown v-else class="h-4 w-4" />
                 </div>
               </TableHead>
+              <TableHead class="cursor-pointer select-none" @click="handleTableSort('due_date')">
+                <div class="flex items-center gap-2">
+                  Дедлайн
+                  <ArrowUpDown v-if="sort.field !== 'due_date'" class="h-4 w-4" />
+                  <ArrowUp v-else-if="sort.order === 1" class="h-4 w-4" />
+                  <ArrowDown v-else class="h-4 w-4" />
+                </div>
+              </TableHead>
+              <TableHead class="cursor-pointer select-none" @click="handleTableSort('created_at')">
+                <div class="flex items-center gap-2">
+                  Дата создания
+                  <ArrowUpDown v-if="sort.field !== 'created_at'" class="h-4 w-4" />
+                  <ArrowUp v-else-if="sort.order === 1" class="h-4 w-4" />
+                  <ArrowDown v-else class="h-4 w-4" />
+                </div>
+              </TableHead>
               <TableHead class="w-[50px]"></TableHead>
             </TableRow>
-            <TableRow class="bg-muted/50">
+            <TableRow class="bg-muted/50 hover:bg-muted/50">
               <TableCell></TableCell>
               <TableCell>
                 <Input
@@ -320,7 +328,6 @@ async function handleDeleteTask(task: Task) {
                   class="h-8"
                 />
               </TableCell>
-              <TableCell></TableCell>
               <TableCell>
                 <Select
                   v-model="filters.status"
@@ -346,6 +353,7 @@ async function handleDeleteTask(task: Task) {
                 </Select>
               </TableCell>
               <TableCell></TableCell>
+              <TableCell></TableCell>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -359,7 +367,6 @@ async function handleDeleteTask(task: Task) {
                 <TableCell>{{ task.id }}</TableCell>
                 <TableCell>{{ task.title }}</TableCell>
                 <TableCell>{{ task.user?.name }}</TableCell>
-                <TableCell>{{ dayjs(task.due_date).format('DD.MM.YYYY') }}</TableCell>
                 <TableCell>
                   <template v-if="task.status">
                     <Badge :variant="getTaskStatusBadgeVariant(task.status as TaskStatus)">
@@ -367,6 +374,8 @@ async function handleDeleteTask(task: Task) {
                     </Badge>
                   </template>
                 </TableCell>
+                <TableCell>{{ dayjs(task.due_date).format('DD.MM.YYYY') }}</TableCell>
+                <TableCell>{{ dayjs(task.created_at).format('DD.MM.YYYY HH:mm') }}</TableCell>
                 <TableCell>
                   <Button
                     v-if="canManageTask(task)"

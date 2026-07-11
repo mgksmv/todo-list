@@ -14,6 +14,7 @@ class TaskFiltersData extends Data
         public ?string     $user_name = null,
         public ?string     $due_date = null,
         public ?TaskStatus $status = null,
+        public ?string     $created_at = null,
     ) {
     }
 }

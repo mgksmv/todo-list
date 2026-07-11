@@ -22,6 +22,7 @@ class TaskIndexRequest extends FormRequest
             'title' => ['sometimes', 'string'],
             'user_name' => ['sometimes', 'string'],
             'due_date' => ['sometimes', 'date'],
+            'created_at' => ['sometimes', 'date'],
             'status' => ['sometimes', Rule::enum(TaskStatus::class)],
         ];
     }
