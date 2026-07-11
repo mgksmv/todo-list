@@ -4,11 +4,9 @@ export const useUserStore = defineStore('user', () => {
   const authUser = ref<User>(<User>{});
 
   async function setUserToken(token: string, remember = false) {
-    let maxAge;
-
-    if (!remember) {
-      maxAge = 12 * 60 * 60;
-    }
+    const maxAge = remember
+      ? 60 * 60 * 24 * 30  // 30 days
+      : 60 * 60 * 12;      // 12 hours
 
     const tokenCookie = useCookie('token', { maxAge });
     tokenCookie.value = token;

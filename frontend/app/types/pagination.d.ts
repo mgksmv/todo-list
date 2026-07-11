@@ -1,4 +1,4 @@
-export type LengthAwarePaginator = {
+export type PaginationMeta = {
   current_page: number;
   from: number;
   to: number;

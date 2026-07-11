@@ -1,5 +1,6 @@
 import type { LucideIcon } from 'lucide-vue-next';
-import type { LengthAwarePaginator } from './pagination';
+import type { PaginationMeta } from './pagination';
+import type { User } from '~/interfaces/user';
 
 export interface Auth {
   user: User;
@@ -18,19 +19,10 @@ export interface NavItem {
   isHeader?: boolean;
 }
 
-export interface User {
-  id: number;
-  name: string;
-  email: string;
-  email_verified_at: string | null;
-  created_at: string;
-  updated_at: string;
-}
-
 export interface APIResponse {
   success: boolean;
   data: any | null;
-  meta: LengthAwarePaginator;
+  meta: PaginationMeta;
   message: string | null;
   errors: any;
   status?: number;
@@ -38,7 +30,7 @@ export interface APIResponse {
 
 export interface DataResource<T> {
   data: T;
-  meta: LengthAwarePaginator;
+  meta: PaginationMeta;
 }
 
 export type BreadcrumbItemType = BreadcrumbItem;

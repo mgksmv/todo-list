@@ -6,7 +6,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
-import type { User } from '@/types';
+import type { User } from '@/interfaces/user';
 import { LogOut, Settings } from 'lucide-vue-next';
 import { useAuthAPI } from '~/api/auth';
 import { useUserStore } from '~/stores/user';
