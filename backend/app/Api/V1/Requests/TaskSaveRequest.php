@@ -18,7 +18,7 @@ class TaskSaveRequest extends FormRequest
         return [
             'title' => ['required', 'string', 'min:3', 'max:255'],
             'description' => ['nullable', 'string', 'max:1000'],
-            'due_date' => ['required', 'date'],
+            'due_date' => ['nullable', 'date'],
             'status' => ['required', Rule::enum(TaskStatus::class)],
         ];
     }

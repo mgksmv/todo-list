@@ -12,13 +12,16 @@ class TaskService
     public function getTasks(TaskFiltersData $filters, ?int $perPage = null): LengthAwarePaginator|Collection
     {
         $query = Task::query()
+            ->when(!auth()->user()->is_admin, function ($query) {
+                $query->where('user_id', auth()->id());
+            })
             ->when(
                 $filters->sort_field,
                 function ($query) use ($filters) {
                     $query->orderBy($filters->sort_field, $filters->sort_order);
                 },
                 function ($query) {
-                    $query->latest();
+                    $query->latest('id');
                 },
             )
             ->when($filters->title, function ($query) use ($filters) {

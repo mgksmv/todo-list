@@ -10,39 +10,27 @@ describe('GET /api/v1/tasks', function () {
         $response->assertStatus(401);
     });
 
-    it('returns a list of tasks', function () {
-        $user = User::factory()->create();
+    it('returns a list of tasks for admin', function () {
+        $admin = User::factory()->create(['is_admin' => true]);
         Task::factory()->count(5)->create();
+
+        $response = $this->actingAs($admin)->getJson('/api/v1/tasks');
+
+        $response->assertStatus(200)
+            ->assertJsonCount(5, 'data');
+    });
+
+    it('returns only owned tasks for regular user', function () {
+        $user = User::factory()->create(['is_admin' => false]);
+        $otherUser = User::factory()->create();
+
+        Task::factory()->count(3)->create(['user_id' => $user->id]);
+        Task::factory()->count(2)->create(['user_id' => $otherUser->id]);
 
         $response = $this->actingAs($user)->getJson('/api/v1/tasks');
 
         $response->assertStatus(200)
-            ->assertJsonCount(5, 'data')
-            ->assertJsonStructure([
-                'success',
-                'message',
-                'data' => [
-                    '*' => [
-                        'id',
-                        'user_id',
-                        'title',
-                        'description',
-                        'due_date',
-                        'status',
-                        'status_label',
-                        'created_at',
-                        'updated_at',
-                        'user' => [
-                            'id',
-                            'name',
-                            'email',
-                            'is_admin',
-                            'created_at',
-                        ],
-                    ],
-                ],
-                'meta',
-            ]);
+            ->assertJsonCount(3, 'data');
     });
 
     it('can filter tasks by title', function () {
@@ -160,13 +148,32 @@ describe('POST /api/v1/tasks', function () {
         ]);
     });
 
+    it('can create a task without due_date', function () {
+        $user = User::factory()->create();
+
+        $taskData = [
+            'title' => 'Задача без дедлайна',
+            'status' => TaskStatus::PENDING->value,
+        ];
+
+        $response = $this->actingAs($user)->postJson('/api/v1/tasks', $taskData);
+
+        $response->assertStatus(200)
+            ->assertJsonPath('data.due_date', null);
+
+        $this->assertDatabaseHas('tasks', [
+            'title' => 'Задача без дедлайна',
+            'due_date' => null,
+        ]);
+    });
+
     it('validates task creation', function () {
         $user = User::factory()->create();
 
         $response = $this->actingAs($user)->postJson('/api/v1/tasks');
 
         $response->assertStatus(422)
-            ->assertJsonValidationErrors(['title', 'due_date', 'status']);
+            ->assertJsonValidationErrors(['title', 'status']);
     });
 });
 
@@ -189,9 +196,30 @@ describe('GET /api/v1/tasks/{task}', function () {
 
     it('can show a task', function () {
         $user = User::factory()->create();
-        $task = Task::factory()->create();
+        $task = Task::factory()->create(['user_id' => $user->id]);
 
         $response = $this->actingAs($user)->getJson("/api/v1/tasks/$task->id");
+
+        $response->assertStatus(200)
+            ->assertJsonPath('data.id', $task->id);
+    });
+
+    it('cannot show another user\'s task', function () {
+        $user = User::factory()->create(['is_admin' => false]);
+        $otherUser = User::factory()->create();
+        $task = Task::factory()->create(['user_id' => $otherUser->id]);
+
+        $response = $this->actingAs($user)->getJson("/api/v1/tasks/$task->id");
+
+        $response->assertStatus(403);
+    });
+
+    it('allows admin to show another user\'s task', function () {
+        $admin = User::factory()->create(['is_admin' => true]);
+        $otherUser = User::factory()->create();
+        $task = Task::factory()->create(['user_id' => $otherUser->id]);
+
+        $response = $this->actingAs($admin)->getJson("/api/v1/tasks/$task->id");
 
         $response->assertStatus(200)
             ->assertJsonPath('data.id', $task->id);

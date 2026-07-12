@@ -49,6 +49,7 @@ class TaskController extends ApiController
     /**
      * Получить одну задачу
      */
+    #[Authorize('view', 'task')]
     public function show(Task $task): JsonResponse
     {
         return $this->success(TaskResource::make($task));

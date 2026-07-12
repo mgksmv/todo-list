@@ -375,7 +375,7 @@ async function handleDeleteTask(task: Task) {
                     </Badge>
                   </template>
                 </TableCell>
-                <TableCell>{{ dayjs(task.due_date).format('DD.MM.YYYY') }}</TableCell>
+                <TableCell>{{ task.due_date ? dayjs(task.due_date).format('DD.MM.YYYY') : '' }}</TableCell>
                 <TableCell>{{ dayjs(task.created_at).format('DD.MM.YYYY HH:mm') }}</TableCell>
                 <TableCell>
                   <Button
