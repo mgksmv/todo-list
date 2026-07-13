@@ -8,7 +8,7 @@ get_compose_file() {
         "prod")
             echo "docker-compose.prod.yml"
             ;;
-        "prod-http")
+        "prodhttp")
             echo "docker-compose.prod-http.yml"
             ;;
         *)
@@ -37,7 +37,7 @@ if [ ! -f ".env" ]; then
     fi
 fi
 
-read -p "🌿  Choose environment [dev/prod-http/prod] (default is dev): " env >&2
+read -p "🌿  Choose environment [dev/prodhttp/prod] (default is dev): " env >&2
 
 # Set default to dev if empty input
 if [ -z "$env" ]; then
@@ -45,7 +45,7 @@ if [ -z "$env" ]; then
 fi
 
 case "$env" in
-    "dev"|"prod"|"prod-http")
+    "dev"|"prod"|"prodhttp")
         # Valid environment
         ;;
     *)
