@@ -19,12 +19,15 @@ get_compose_file() {
 
 # Check if DOCKER_ENV is already set in .env and use it
 if [ -f ".env" ]; then
-    env_value=$(grep "^DOCKER_ENV=" .env | cut -d'=' -f2)
-    if [ -n "$env_value" ]; then
-        docker_compose_file=$(get_compose_file "$env_value")
-        echo "$docker_compose_file"
-        exit 0
-    fi
+    env_value=$(grep "^DOCKER_ENV=" .env | cut -d'=' -f2 | tr -d '\r')
+
+    case "$env_value" in
+        "dev"|"prod"|"prodhttp")
+            docker_compose_file=$(get_compose_file "$env_value")
+            echo "$docker_compose_file"
+            exit 0
+            ;;
+    esac
 fi
 
 if [ ! -f ".env" ]; then
