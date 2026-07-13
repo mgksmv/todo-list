@@ -37,7 +37,7 @@ if [ ! -f ".env" ]; then
     fi
 fi
 
-read -p "🌿  Choose environment [dev/ip/prod] (default is dev): " env >&2
+read -p "🌿  Choose environment [dev/prod-http/prod] (default is dev): " env >&2
 
 # Set default to dev if empty input
 if [ -z "$env" ]; then
